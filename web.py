@@ -1,16 +1,17 @@
 from flask import Flask, render_template, request, redirect, flash
 import psycopg2
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 app.secret_key = 'gugugaga'
 
 DB_CONFIG = {
-    'dbname': 'contacts_db',
-    'user': 'postgres',
-    'password': 'sadcatman123',
-    'host': 'localhost',
-    'port': '5432',
-   
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT')
 }
 
 def get_connection():

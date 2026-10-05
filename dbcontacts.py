@@ -1,5 +1,5 @@
 import psycopg2
-from web import DB_CONFIG  
+from config import DB_CONFIG  
 
 conn = psycopg2.connect(
     dbname='postgres',   

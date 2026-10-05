@@ -15,9 +15,9 @@
 </head>
 <body>
     <h1>Редактирование контакта</h1>
-    <form action="/edit/{{ contact[0] }}" method="POST">
-        <input type="text" name="name" value="{{ contact[1] }}" placeholder="Имя" required>
-        <input type="text" name="phone" value="{{ contact[2] }}" placeholder="Телефон" required>
+    <form action="/edit/{{ contact.id }}" method="POST">
+        <input type="text" name="name" value="{{ contact.name }}" placeholder="Имя" required>
+        <input type="text" name="phone" value="{{ contact.phone }}" placeholder="Телефон" required>
         <button type="submit">Сохранить</button>
     </form>
 

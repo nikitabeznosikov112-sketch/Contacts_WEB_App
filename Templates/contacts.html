@@ -54,6 +54,7 @@
     <form action="/find" method="POST">
         <input type="text" name="name" placeholder="Имя" required>
         <button type="submit">Найти</button>
+        <a href="/">Назад</a>
     </form>
     
 
@@ -69,10 +70,10 @@
     <ul>
         {% for contact in contacts %}
         <li>
-            <span><strong>{{ contact[1] }}</strong> - {{ contact[2] }}</span>
+            <span><strong>{{ contact.name }}</strong> - {{ contact.phone }}</span>
             <div>
-                <a href="/edit/{{ contact[0] }}" class="edit-btn">Ред.</a>
-                <form action="/delete/{{ contact[0] }}" method="POST" style="margin:0; display: inline;">
+                <a href="/edit/{{ contact.id }}">Ред.</a>
+                <form action="/delete/{{ contact.id }}" method="POST" style="margin:0; display: inline;">
                     <button type="submit" class="delete-tbn">Удалить</button>
                 </form>
             </div>

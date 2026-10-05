@@ -1,62 +1,12 @@
 from flask import Flask, render_template, request, redirect, flash
-import psycopg2
-from dotenv import load_dotenv
-import os
-
+from models import Contact
 app = Flask(__name__)
 app.secret_key = 'gugugaga'
 
-DB_CONFIG = {
-    'dbname': os.getenv('DB_NAME'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'host': os.getenv('DB_HOST'),
-    'port': os.getenv('DB_PORT')
-}
 
-def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
-
-def get_contacts():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, phone FROM contacts ORDER BY name")
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
-
-def add_contact(name, phone):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO contacts (name, phone) VALUES (%s, %s)", (name, phone))
-    conn.commit()
-    conn.close()
-
-def delete_contact(contact_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM contacts WHERE id = %s", (contact_id,))
-    conn.commit()
-    conn.close()
-
-def change_contact(contact_id, name, phone):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE contacts SET name = %s, phone = %s WHERE id = %s", (name, phone, contact_id))
-    conn.commit()
-    conn.close()
-
-def find_contact(name):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, phone FROM contacts WHERE name = %s", (name,))
-    founds=cursor.fetchall()
-    conn.close()
-    return founds
-    
 @app.route('/')
 def index():
-    contacts = get_contacts()
+    contacts = Contact.get_all()
     return render_template('contacts.html', contacts=contacts)
 
 @app.route('/add', methods=['POST'])
@@ -65,7 +15,8 @@ def add():
     phone = request.form.get('phone', '').strip()
 
     if name and phone:
-        add_contact(name, phone)
+        contact=Contact(name=name, phone=phone)
+        contact.save()
         flash('Контакт добавлен!','success')
     else:
         flash('Не все поля заполнены!', 'error')    
@@ -73,44 +24,48 @@ def add():
 
 @app.route('/delete/<int:contact_id>', methods=['POST'])
 def delete(contact_id):
-    delete_contact(contact_id)
-    flash('Контакт удален', 'success')
-    return redirect('/')
-
-@app.route('/edit/<int:contact_id>', methods=['POST'])
-def edit_contact(contact_id):
-    name = request.form.get('name', '').strip()
-    phone = request.form.get('phone', '').strip()
-
-    if name and phone:
-        change_contact(contact_id, name, phone)
-        flash('Контакт обновлен!', 'success')
-    else:
-        flash('Не все поля заполнены!', 'error')
-
+    contact = Contact.get_by_id(contact_id)
+    if contact:
+        contact.delete()
+        flash('Контакт удален', 'success')
     return redirect('/')
 
 @app.route('/edit/<int:contact_id>', methods=['GET'])
 def edit_form(contact_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, phone FROM contacts WHERE id = %s", (contact_id,))
-    contact = cursor.fetchone()
-    conn.close
-
+    contact = Contact.get_by_id(contact_id)
+    
     if not contact:
         return redirect('/')
-
+    
     return render_template('edit.html', contact=contact)
+
+
+@app.route('/edit/<int:contact_id>', methods=['POST'])
+def edit_contact(contact_id):
+    contact = Contact.get_by_id(contact_id)
+    
+    if not contact:
+        return redirect('/')
+    
+    name = request.form.get('name', '').strip()
+    phone = request.form.get('phone', '').strip()
+    
+    if name and phone:
+        contact.name = name
+        contact.phone = phone
+        contact.save()
+        flash('Контакт обновлён!', 'success')
+    else:
+        flash('Заполни все поля!', 'error')
+    
+    return redirect('/')
+
 
 @app.route('/find', methods=["POST"])
 @app.route('/find/', methods=["POST"])
 def find_cont():
     name = request.form.get('name', '').strip()
-
-    if not name:
-        return redirect('/')
-    contacts = find_contact(name)
+    contacts = Contact.find_by_name(name)
     return render_template('contacts.html', contacts=contacts)
 
 

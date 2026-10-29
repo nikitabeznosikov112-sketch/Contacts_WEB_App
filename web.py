@@ -1,77 +1,62 @@
-from flask import Flask, render_template, request, redirect, flash
 from models import Contact
-app = Flask(__name__)
-app.secret_key = 'gugugaga'
+from fastapi import FastAPI, Request, Form
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+import os
 
 
-@app.route('/')
-def index():
-    contacts = Contact.get_all()
-    return render_template('contacts.html', contacts=contacts)
 
-@app.route('/add', methods=['POST'])
-def add():
-    name = request.form.get('name', '').strip()
-    phone = request.form.get('phone', '').strip()
+@app.get('/', response_class=HTMLResponse)
+def index(request: Request):
+    data = Contact.get_all()
+    return templates.TemplateResponse(request=request, name='contacts.html', context={"data": data})
+
+@app.post('/add')
+def add(name: str = Form(...), phone: str = Form(...)):
 
     if name and phone:
         contact=Contact(name=name, phone=phone)
         contact.save()
-        flash('Контакт добавлен!','success')
-    else:
-        flash('Не все поля заполнены!', 'error')    
-    return redirect('/')
+ 
+    return RedirectResponse(url='/', status_code=303)
 
-@app.route('/delete/<int:contact_id>', methods=['POST'])
-def delete(contact_id):
-    contact = Contact.get_by_id(contact_id)
+@app.post('/delete/{id}')
+def delete(id: int):
+    contact = Contact.get_by_id(id)
     if contact:
         contact.delete()
-        flash('Контакт удален', 'success')
-    return redirect('/')
+    return RedirectResponse(url='/', status_code = 303)
 
-@app.route('/edit/<int:contact_id>', methods=['GET'])
-def edit_form(contact_id):
-    contact = Contact.get_by_id(contact_id)
+
+
+@app.post('/edit/{id}')
+def edit_contact(id: int, name: str = Form(...), phone: str = Form(...)):
+    contact = Contact.get_by_id(id)
     
     if not contact:
-        return redirect('/')
-    
-    return render_template('edit.html', contact=contact)
-
-
-@app.route('/edit/<int:contact_id>', methods=['POST'])
-def edit_contact(contact_id):
-    contact = Contact.get_by_id(contact_id)
-    
-    if not contact:
-        return redirect('/')
-    
-    name = request.form.get('name', '').strip()
-    phone = request.form.get('phone', '').strip()
+        return RedirectResponse(url='/', status_code=303)
     
     if name and phone:
         contact.name = name
         contact.phone = phone
         contact.save()
-        flash('Контакт обновлён!', 'success')
-    else:
-        flash('Заполни все поля!', 'error')
-    
-    return redirect('/')
 
+    return RedirectResponse(url='/', status_code=303)
 
-@app.route('/find', methods=["POST"])
-@app.route('/find/', methods=["POST"])
-def find_cont():
-    name = request.form.get('name', '').strip()
-    contacts = Contact.find_by_name(name)
-    return render_template('contacts.html', contacts=contacts)
+@app.get('/edit/{id}', response_class=HTMLResponse)
+def edit_page(request: Request, id: int):
+    contact = Contact.get_by_id(id)
+    if not contact:
+        return RedirectResponse(url='/', status_code=303)
+    return templates.TemplateResponse(request=request, name='edit.html', context={"contact": contact})
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+@app.post('/find', response_class=HTMLResponse)
+def find_cont(request: Request, name: str = Form(...)):
+    data = Contact.find_by_name(name)
+    return templates.TemplateResponse(request=request, name='contacts.html', context={"data": data})
 
     
 

@@ -1,3 +1,6 @@
-Flask
-psycopg2
+fastapi
+python-multipart
+psycopg2-binary
 python-dotenv
+jinja2
+uvicorn

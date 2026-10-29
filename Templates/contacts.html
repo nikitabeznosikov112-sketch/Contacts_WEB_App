@@ -41,13 +41,7 @@
     </style>
 </head>
 <body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="flash {{ category }}">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+
 
     <h1>Справочник контактов</h1>
 
@@ -64,11 +58,11 @@
         <button type="submit">Добавить</button>
     </form>
 
-    <h2>Контакты ({{ contacts|length }})</h2>
+    <h2>Контакты ({{ data|length }})</h2>
 
-    {% if contacts %}
+    {% if data %}
     <ul>
-        {% for contact in contacts %}
+        {% for contact in data %}
         <li>
             <span><strong>{{ contact.name }}</strong> - {{ contact.phone }}</span>
             <div>

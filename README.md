@@ -3,7 +3,7 @@
 Веб-приложение -- телефонная книга
 
 ## Установка
-
+Если запускаете локально
 1. Установи зависимости:
 pip install -r requirements.txt
 
@@ -13,7 +13,17 @@ pip install -r requirements.txt
 python dbcontacts.py
 
 4. Запусти: 
-python web.py
+```bash
+uvicorn web:app --reload
+```
+
+Если запускаете через докер:
+1. Создай `.env` по `env.example`
+
+2. Запусти:
+```bash
+docker compose up --build
+```
 
 ## Функции
 
